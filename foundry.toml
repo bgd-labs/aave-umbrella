@@ -1,6 +1,60 @@
 [profile.default]
-src = "src"
-out = "out"
-libs = ["lib"]
+src = 'src'
+test = 'tests'
+script = 'scripts'
+out = 'out'
+libs = ['lib']
+remappings = []
+fs_permissions = [{ access = "write", path = "./reports" }]
+via_ir = false
+solc_version = '0.8.27'
+evm_version = 'shanghai'
+bytecode_hash = 'none'
+ffi = true
 
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
+[fuzz]
+runs = 1024
+max_test_rejects = 1000000
+
+[rpc_endpoints]
+mainnet = "${RPC_MAINNET}"
+polygon = "${RPC_POLYGON}"
+polygon_amoy = "${RPC_POLYGON_AMOY}"
+avalanche = "${RPC_AVALANCHE}"
+avalanche_fuji = "${RPC_AVALANCHE_FUJI}"
+arbitrum = "${RPC_ARBITRUM}"
+arbitrum_sepolia = "${RPC_ARBITRUM_SEPOLIA}"
+fantom = "${RPC_FANTOM}"
+fantom_testnet = "${RPC_FANTOM_TESTNET}"
+optimism = "${RPC_OPTIMISM}"
+optimism_sepolia = "${RPC_OPTIMISM_SEPOLIA}"
+harmony = "${RPC_HARMONY}"
+sepolia = "${RPC_SEPOLIA}"
+scroll = "${RPC_SCROLL}"
+scroll_sepolia = "${RPC_SCROLL_SEPOLIA}"
+metis = "${RPC_METIS}"
+base = "${RPC_BASE}"
+base_sepolia = "${RPC_BASE_SEPOLIA}"
+bnb = "${RPC_BNB}"
+gnosis = "${RPC_GNOSIS}"
+zkEVM = "${RPC_ZKEVM}"
+celo = "${RPC_CELO}"
+zksync = "${RPC_ZKSYNC}"
+
+[etherscan]
+mainnet = { key = "${ETHERSCAN_API_KEY_MAINNET}", chain = 1 }
+sepolia = { key = "${ETHERSCAN_API_KEY_MAINNET}" }
+optimism = { key = "${ETHERSCAN_API_KEY_OPTIMISM}", chain = 10 }
+avalanche = { key = "${ETHERSCAN_API_KEY_AVALANCHE}", chain = 43114 }
+avalanche_fuji = { key = "${ETHERSCAN_API_KEY_AVALANCHE}", chain = 43113, url = 'https://api-testnet.snowscan.xyz/api' }
+polygon = { key = "${ETHERSCAN_API_KEY_POLYGON}", chain = 137 }
+arbitrum = { key = "${ETHERSCAN_API_KEY_ARBITRUM}", chain = 42161 }
+fantom = { key = "${ETHERSCAN_API_KEY_FANTOM}", chain = 250 }
+metis = { key = "any", chain = 1088, url = 'https://andromeda-explorer.metis.io/' }
+base = { key = "${ETHERSCAN_API_KEY_BASE}", chain = 8453 }
+zkevm = { key = "${ETHERSCAN_API_KEY_ZKEVM}", chain = 1101 }
+gnosis = { key = "${ETHERSCAN_API_KEY_GNOSIS}", chain = 100 }
+bnb = { key = "${ETHERSCAN_API_KEY_BNB}", chain = 56 }
+
+# See more config options https://github.com/gakonst/foundry/tree/master/config

@@ -1,0 +1,72 @@
+name: certora
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches:
+      - certora
+      - main
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    if:
+      github.event.pull_request.head.repo.full_name == github.repository || (github.event_name == 'push' &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install python
+        uses: actions/setup-python@v5
+        with: { python-version: 3.9 }
+
+      - name: Install java
+        uses: actions/setup-java@v4
+        with: { distribution: "zulu", java-version: "11", java-package: jre }
+
+      - name: Install certora cli
+        run: pip install certora-cli==7.26.0
+
+      - name: Install solc
+        run: |
+          wget https://github.com/ethereum/solidity/releases/download/v0.8.27/solc-static-linux
+          chmod +x solc-static-linux
+          sudo mv solc-static-linux /usr/local/bin/solc8.27
+
+      - name: Verify rule ${{ matrix.rule }}
+        run: |
+          echo "key length" ${#CERTORAKEY}
+          certoraRun certora/conf/${{ matrix.rule }} --wait_for_results
+        env:
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix:
+        rule:
+          - stakeToken/rules.conf
+          - stakeToken/invariants.conf
+          - rewards/mirrors.conf
+          - rewards/invariants.conf
+          - rewards/double_reward.conf
+          - rewards/single_reward.conf --exclude_rule bob_cant_DOS_alice_to_claim bob_cant_DOS_alice_to_claim__claimSelectedRewards bob_cant_DOS_alice_to_claim__claimAllRewards bob_cant_affect_the_claimed_amount_of_alice
+          - rewards/single_reward-depth0.conf --rule bob_cant_DOS_alice_to_claim
+          - rewards/single_reward-depth0.conf --rule bob_cant_DOS_alice_to_claim__claimAllRewards
+          - rewards/single_reward-depth0.conf --rule bob_cant_DOS_alice_to_claim__claimSelectedRewards
+          - rewards/single_reward-special_config.conf --rule bob_cant_affect_the_claimed_amount_of_alice
+          - umbrella/Umbrella.conf
+          - umbrella/invariants.conf
+          
+          

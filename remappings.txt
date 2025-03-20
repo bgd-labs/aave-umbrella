@@ -1,0 +1,11 @@
+forge-std/=lib/forge-std/src/
+solidity-utils/=lib/aave-v3-origin/lib/solidity-utils/src/
+@openzeppelin/contracts-upgradeable/=lib/aave-v3-origin/lib/solidity-utils/lib/openzeppelin-contracts-upgradeable/contracts/
+@openzeppelin/contracts/=lib/aave-v3-origin/lib/solidity-utils/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/
+openzeppelin-contracts-upgradeable/=lib/aave-v3-origin/lib/solidity-utils/lib/openzeppelin-contracts-upgradeable/
+openzeppelin-contracts/=lib/aave-v3-origin/lib/solidity-utils/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/
+aave-v3-origin-tests/=lib/aave-v3-origin/tests/
+aave-v3-origin/=lib/aave-v3-origin/src/
+aave-address-book/=lib/aave-helpers/lib/aave-address-book/src/
+aave-helpers/=lib/aave-helpers/src/
+erc4626-tests/=lib/erc4626-tests/
