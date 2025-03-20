@@ -1,45 +1,48 @@
-name: CI
+name: Test
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 on:
-  push:
   pull_request:
-  workflow_dispatch:
-
-env:
-  FOUNDRY_PROFILE: ci
+  push:
+    branches:
+      - main
 
 jobs:
-  check:
-    strategy:
-      fail-fast: true
-
-    name: Foundry project
+  test:
+    name: Foundry build n test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          token: ${{ secrets.READ_ONLY_PAT }}
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+      - uses: bgd-labs/action-rpc-env@main
         with:
-          version: nightly
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
 
-      - name: Show Forge version
-        run: |
-          forge --version
-
-      - name: Run Forge fmt
-        run: |
-          forge fmt --check
-        id: fmt
-
-      - name: Run Forge build
-        run: |
-          forge build --sizes
-        id: build
+      - name: Run Foundry setup
+        uses: bgd-labs/github-workflows/.github/actions/foundry-setup@main
 
       - name: Run Forge tests
-        run: |
-          forge test -vvv
         id: test
+        uses: bgd-labs/github-workflows/.github/actions/foundry-test@main
+
+      - name: Run Gas report
+        uses: bgd-labs/github-workflows/.github/actions/foundry-gas-report@main
+
+      - name: Run Lcov report
+        uses: bgd-labs/github-workflows/.github/actions/foundry-lcov-report@main
+
+      - name: Store artifacts
+        uses: bgd-labs/github-workflows/.github/actions/comment-artifact@main
+
+      # we let failing tests pass so we can log them in the comment, still we want the ci to fail
+      - name: Post test
+        if: ${{ steps.test.outputs.testStatus != 0 }}
+        run: |
+          echo "tests failed"
+          exit 1
