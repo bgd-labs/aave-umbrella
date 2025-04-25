@@ -1,110 +1,90 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.27;
 
-import {IUmbrellaConfiguration} from '../umbrella/interfaces/IUmbrellaConfiguration.sol';
+import {Address} from 'openzeppelin-contracts/contracts/utils/Address.sol';
 
 import {IUmbrellaEngineStructs as IStructs} from './IUmbrellaEngineStructs.sol';
+import {IUmbrellaStkManager as ISMStructs, IUmbrellaConfiguration as ICStructs} from './IUmbrellaEngineStructs.sol';
 
-import {RewardsControllerEngine} from './engine/RewardsControllerEngine.sol';
-import {UmbrellaEngine} from './engine/UmbrellaEngine.sol';
-
-import {IUmbrella} from '../umbrella/interfaces/IUmbrella.sol';
-import {IUmbrellaStkManager} from '../umbrella/interfaces/IUmbrellaStkManager.sol';
-import {IUmbrellaConfiguration} from '../umbrella/interfaces/IUmbrellaConfiguration.sol';
+import {IUmbrellaConfigEngine as IEngine} from './configEngine/IUmbrellaConfigEngine.sol';
 
 /**
  * @title UmbrellaBasePayload
- * @notice Abstract contract for full Umbrella configuration in manual mode. Includes all calls that should be called by governance;
- * to configure additional calls (like pause or rescue) override `_preExecute` or `_postExecute`.
- * (If you are not sure what you want to do, try to use `UmbrellaExtendedPayload`, since it has some several ready scenarios.)
+ * @notice A contract for manually configuring the whole Umbrella system.
+ * @dev Includes all governance-required calls.
+ * To make additional actions (e.g., pausing or asset rescue), override `_preExecute` or `_postExecute`.
+ *
+ * ***IMPORTANT*** Payload inheriting this `UmbrellaBasePayload` MUST BE STATELESS always.
+ *
+ * At this moment payload covering:
+ *   - `UmbrellaStakeToken`s creation
+ *   - Updates of `cooldown`s
+ *   - Updates of `unstakeWindow`s
+ *   - Removals of `SlashingConfigs`s
+ *   - Updates of `SlashingConfig`s
+ *   - Updates of `deficitOffset`s
+ *   - Covering of `pendingDeficit`s
+ *   - Covering of `deficitOffset`s
+ *   - Configuration of `reward`s (with and without `targetLiquidity`)
+ *
  * @author BGD labs
  */
 abstract contract UmbrellaBasePayload {
-  function execute() external {
+  using Address for address;
+
+  /// @notice Address of `UmbrellaConfigEngine` for concrete `Pool`
+  address public immutable ENGINE;
+
+  /// @dev Attempted to set zero address as parameter.
+  error ZeroAddress();
+
+  constructor(address umbrellaConfigEngine) {
+    require(umbrellaConfigEngine != address(0), ZeroAddress());
+
+    ENGINE = umbrellaConfigEngine;
+  }
+
+  function execute() external virtual {
     _preExecute();
 
     _umbrellaPayload();
 
     _rewardsControllerPayload();
 
+    _extendedExecute();
+
     _postExecute();
   }
 
-  function _umbrellaPayload() internal {
-    IStructs.CreateStkToken[] memory createTokens = createStkTokens();
-    IStructs.ChangeCooldown[] memory changeCooldowns = updateCooldowns();
-    IStructs.ChangeUnstake[] memory changeUnstakeWindows = updateUnstakeWindows();
-
-    IStructs.RemoveConfig[] memory removeConfigs = removeSlashingConfigs();
-    IStructs.UpdateConfig[] memory updateConfigs = updateSlashingConfigs();
-
-    IStructs.SetDeficitOffset[] memory setDeficitOffsetConfigs = setDeficitOffset();
-
-    IStructs.CoverDeficit[] memory coverPendingDeficitConfigs = coverPendingDeficit();
-    IStructs.CoverDeficit[] memory coverDeficitOffsetConfigs = coverDeficitOffset();
-
-    // First we need to create tokens, so that in subsequent actions we can integrate them
-    if (createTokens.length != 0) {
-      UmbrellaEngine.executeCreateStakeTokens(createTokens);
-    }
-
-    if (changeCooldowns.length != 0) {
-      UmbrellaEngine.executeChangeCooldowns(changeCooldowns);
-    }
-
-    if (changeUnstakeWindows.length != 0) {
-      UmbrellaEngine.executeChangeUnstakeWindow(changeUnstakeWindows);
-    }
-
-    // Need to call remove slashing config before update due to edge case (Limitations in Umbrella README)
-    if (removeConfigs.length != 0) {
-      UmbrellaEngine.executeRemoveSlashingConfig(removeConfigs);
-    }
-
-    if (updateConfigs.length != 0) {
-      UmbrellaEngine.executeUpdateSlashingConfig(updateConfigs);
-    }
-
-    if (setDeficitOffsetConfigs.length != 0) {
-      UmbrellaEngine.executeSetDeficitOffset(setDeficitOffsetConfigs);
-    }
-
-    if (coverPendingDeficitConfigs.length != 0) {
-      UmbrellaEngine.executeCoverPendingDeficit(coverPendingDeficitConfigs);
-    }
-
-    if (coverDeficitOffsetConfigs.length != 0) {
-      UmbrellaEngine.executeCoverDeficitOffset(coverDeficitOffsetConfigs);
-    }
-  }
-
-  function _rewardsControllerPayload() internal {
-    IStructs.StakeAndRewardConfig[] memory configsForStakesAndRewards = configureStakeAndRewards();
-    IStructs.RewardConfig[] memory configsForRewards = configureRewards();
-
-    if (configsForStakesAndRewards.length != 0) {
-      RewardsControllerEngine.executeConfigureStakeAndRewards(configsForStakesAndRewards);
-    }
-
-    if (configsForRewards.length != 0) {
-      RewardsControllerEngine.executeConfigureRewards(configsForRewards);
-    }
-  }
-
+  /// @dev Functions to be overridden on the child
   /////////////////////////////////////////////////////////////////////////////////////////
-  /// @dev Functions to be overriden on the child
 
   function _preExecute() internal virtual {}
 
-  function createStkTokens() public view virtual returns (IStructs.CreateStkToken[] memory) {}
+  function _extendedExecute() internal virtual {}
 
-  function updateCooldowns() public view virtual returns (IStructs.ChangeCooldown[] memory) {}
+  function _postExecute() internal virtual {}
 
-  function updateUnstakeWindows() public view virtual returns (IStructs.ChangeUnstake[] memory) {}
+  /// Umbrella
+  /////////////////////////////////////////////////////////////////////////////////////////
 
-  function removeSlashingConfigs() public view virtual returns (IStructs.RemoveConfig[] memory) {}
+  function createStkTokens() public view virtual returns (ISMStructs.StakeTokenSetup[] memory) {}
 
-  function updateSlashingConfigs() public view virtual returns (IStructs.UpdateConfig[] memory) {}
+  function updateUnstakeConfig() public view virtual returns (IStructs.UnstakeConfig[] memory) {}
+
+  function removeSlashingConfigs()
+    public
+    view
+    virtual
+    returns (ICStructs.SlashingConfigRemoval[] memory)
+  {}
+
+  function updateSlashingConfigs()
+    public
+    view
+    virtual
+    returns (ICStructs.SlashingConfigUpdate[] memory)
+  {}
 
   function setDeficitOffset() public view virtual returns (IStructs.SetDeficitOffset[] memory) {}
 
@@ -112,16 +92,115 @@ abstract contract UmbrellaBasePayload {
 
   function coverDeficitOffset() public view virtual returns (IStructs.CoverDeficit[] memory) {}
 
+  function coverReserveDeficit() public view virtual returns (IStructs.CoverDeficit[] memory) {}
+
+  /// RewardsController
+  /////////////////////////////////////////////////////////////////////////////////////////
+
   function configureStakeAndRewards()
     public
     view
     virtual
-    returns (IStructs.StakeAndRewardConfig[] memory)
+    returns (IStructs.ConfigureStakeAndRewardsConfig[] memory)
   {}
 
-  function configureRewards() public view virtual returns (IStructs.RewardConfig[] memory) {}
-
-  function _postExecute() internal virtual {}
+  function configureRewards()
+    public
+    view
+    virtual
+    returns (IStructs.ConfigureRewardsConfig[] memory)
+  {}
 
   /////////////////////////////////////////////////////////////////////////////////////////
+
+  function _umbrellaPayload() internal {
+    // `coverReserveDeficit` to cover existing deficit in pool for reserve without `SlashingConfig` or before its setup,
+    // otherwise `coverDeficitOffset` should be used
+    IStructs.CoverDeficit[] memory coverReserveDeficitConfigs = coverReserveDeficit();
+    if (coverReserveDeficitConfigs.length != 0) {
+      ENGINE.functionDelegateCall(
+        abi.encodeWithSelector(
+          IEngine.executeCoverReserveDeficits.selector,
+          coverReserveDeficitConfigs
+        )
+      );
+    }
+
+    // if tokens are created and modified inside this basic payload, then their addresses should be predicted manually
+    ISMStructs.StakeTokenSetup[] memory createTokens = createStkTokens();
+    if (createTokens.length != 0) {
+      ENGINE.functionDelegateCall(
+        abi.encodeWithSelector(IEngine.executeCreateTokens.selector, createTokens)
+      );
+    }
+
+    IStructs.UnstakeConfig[] memory unstakeConfigs = updateUnstakeConfig();
+    if (unstakeConfigs.length != 0) {
+      ENGINE.functionDelegateCall(
+        abi.encodeWithSelector(IEngine.executeUpdateUnstakeConfigs.selector, unstakeConfigs)
+      );
+    }
+
+    // Need to call remove slashing config before update due to edge case (Limitations in Umbrella README)
+    ICStructs.SlashingConfigRemoval[] memory removeConfigs = removeSlashingConfigs();
+    if (removeConfigs.length != 0) {
+      ENGINE.functionDelegateCall(
+        abi.encodeWithSelector(IEngine.executeRemoveSlashingConfigs.selector, removeConfigs)
+      );
+    }
+
+    ICStructs.SlashingConfigUpdate[] memory updateConfigs = updateSlashingConfigs();
+    if (updateConfigs.length != 0) {
+      ENGINE.functionDelegateCall(
+        abi.encodeWithSelector(IEngine.executeUpdateSlashingConfigs.selector, updateConfigs)
+      );
+    }
+
+    IStructs.SetDeficitOffset[] memory setDeficitOffsetConfigs = setDeficitOffset();
+    if (setDeficitOffsetConfigs.length != 0) {
+      ENGINE.functionDelegateCall(
+        abi.encodeWithSelector(IEngine.executeSetDeficitOffsets.selector, setDeficitOffsetConfigs)
+      );
+    }
+
+    IStructs.CoverDeficit[] memory coverPendingDeficitConfigs = coverPendingDeficit();
+    if (coverPendingDeficitConfigs.length != 0) {
+      ENGINE.functionDelegateCall(
+        abi.encodeWithSelector(
+          IEngine.executeCoverPendingDeficits.selector,
+          coverPendingDeficitConfigs
+        )
+      );
+    }
+
+    IStructs.CoverDeficit[] memory coverDeficitOffsetConfigs = coverDeficitOffset();
+    if (coverDeficitOffsetConfigs.length != 0) {
+      ENGINE.functionDelegateCall(
+        abi.encodeWithSelector(
+          IEngine.executeCoverDeficitOffsets.selector,
+          coverDeficitOffsetConfigs
+        )
+      );
+    }
+  }
+
+  function _rewardsControllerPayload() internal {
+    IStructs.ConfigureStakeAndRewardsConfig[]
+      memory configsForStakesAndRewards = configureStakeAndRewards();
+    if (configsForStakesAndRewards.length != 0) {
+      ENGINE.functionDelegateCall(
+        abi.encodeWithSelector(
+          IEngine.executeConfigureStakesAndRewards.selector,
+          configsForStakesAndRewards
+        )
+      );
+    }
+
+    IStructs.ConfigureRewardsConfig[] memory configsForRewards = configureRewards();
+    if (configsForRewards.length != 0) {
+      ENGINE.functionDelegateCall(
+        abi.encodeWithSelector(IEngine.executeConfigureRewards.selector, configsForRewards)
+      );
+    }
+  }
 }

@@ -49,7 +49,7 @@ interface IUmbrellaStkManager is IUmbrellaConfiguration {
   /////////////////////////////////////////////////////////////////////////////////////////
 
   /**
-   * @notice Creates new `UmbrlleaStakeToken`s.
+   * @notice Creates new `UmbrellaStakeToken`s.
    * @param stakeTokenSetups Array of `UmbrellaStakeToken`s setup configs
    * @return stakeTokens Array of new `UmbrellaStakeToken`s addresses
    */
@@ -146,7 +146,7 @@ interface IUmbrellaStkManager is IUmbrellaConfiguration {
   function UMBRELLA_STAKE_TOKEN_IMPL() external view returns (address);
 
   /**
-   * @notice Returns the `SUPER_ADMIN` address, which has `DEFAULT_ADMIN_ROLE` and is used to manage `UmbrellaStakeToken`s upgreadability.
+   * @notice Returns the `SUPER_ADMIN` address, which has `DEFAULT_ADMIN_ROLE` and is used to manage `UmbrellaStakeToken`s upgradability.
    * @return `SUPER_ADMIN` address
    */
   function SUPER_ADMIN() external view returns (address);

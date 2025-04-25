@@ -145,7 +145,9 @@ interface IUmbrellaConfiguration {
    * @param reserve Address of the `reserve`
    * @return An array of `SlashingConfig` structs
    */
-  function getReserveSlashingConfigs(address reserve) external returns (SlashingConfig[] memory);
+  function getReserveSlashingConfigs(
+    address reserve
+  ) external view returns (SlashingConfig[] memory);
 
   /**
    * @notice Returns the slashing configuration for a given `UmbrellaStakeToken` in regards to a specific `reserve`.
@@ -157,7 +159,7 @@ interface IUmbrellaConfiguration {
   function getReserveSlashingConfig(
     address reserve,
     address umbrellaStake
-  ) external returns (SlashingConfig memory);
+  ) external view returns (SlashingConfig memory);
 
   /**
    * @notice Returns if a reserve is currently slashable or not.
@@ -175,14 +177,14 @@ interface IUmbrellaConfiguration {
    * @param reserve Address of the `reserve`
    * @return The amount of the `deficitOffset`
    */
-  function getDeficitOffset(address reserve) external returns (uint256);
+  function getDeficitOffset(address reserve) external view returns (uint256);
 
   /**
    * @notice Returns the amount of already slashed funds that have not yet been used for the deficit elimination.
    * @param reserve Address of the `reserve`
    * @return The amount of funds pending for deficit elimination
    */
-  function getPendingDeficit(address reserve) external returns (uint256);
+  function getPendingDeficit(address reserve) external view returns (uint256);
 
   /**
    * @notice Returns the `StakeTokenData` of the `umbrellaStake`.
