@@ -138,8 +138,6 @@ contract CooldownTests is StakeTestBase {
 
     skip(afterCooldownActivation);
 
-    vm.expectRevert();
-
     vm.expectRevert(
       abi.encodeWithSelector(
         ERC4626Upgradeable.ERC4626ExceededMaxWithdraw.selector,
