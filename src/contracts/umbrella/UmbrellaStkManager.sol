@@ -213,14 +213,23 @@ abstract contract UmbrellaStkManager is UmbrellaConfiguration, IUmbrellaStkManag
       stakeSetup.unstakeWindow
     );
 
-    // name and symbol inside creation data is considered as unique, so using different salts is excess
-    // if for some reason we want to create different tokens with the same name and symbol, then we can use different `cooldown` and `unstakeWindow`
-    address umbrellaStakeToken = TRANSPARENT_PROXY_FACTORY().createDeterministic(
+    address umbrellaStakeToken = TRANSPARENT_PROXY_FACTORY().predictCreateDeterministic(
       UMBRELLA_STAKE_TOKEN_IMPL(),
       SUPER_ADMIN(),
       creationData,
       ''
     );
+
+    if (umbrellaStakeToken.code.length == 0) {
+      // name and symbol inside creation data is considered as unique, so using different salts is excess
+      // if for some reason we want to create different tokens with the same name and symbol, then we can use different `cooldown` and `unstakeWindow`
+      TRANSPARENT_PROXY_FACTORY().createDeterministic(
+        UMBRELLA_STAKE_TOKEN_IMPL(),
+        SUPER_ADMIN(),
+        creationData,
+        ''
+      );
+    }
 
     _getUmbrellaStkManagerStorage().stakeTokens.add(umbrellaStakeToken);
 

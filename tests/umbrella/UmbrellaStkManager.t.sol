@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {IERC20Metadata} from 'openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import {IAccessControl} from 'openzeppelin-contracts/contracts/access/IAccessControl.sol';
 
 import {UmbrellaBaseTest} from './utils/UmbrellaBase.t.sol';
@@ -9,6 +10,7 @@ import {IUmbrellaStkManager} from '../../src/contracts/umbrella/interfaces/IUmbr
 import {IUmbrellaConfiguration} from '../../src/contracts/umbrella/interfaces/IUmbrellaConfiguration.sol';
 
 import {StakeToken} from '../../src/contracts/stakeToken/StakeToken.sol';
+import {UmbrellaStakeToken} from '../../src/contracts/stakeToken/UmbrellaStakeToken.sol';
 
 contract Umbrella_StkManager_Test is UmbrellaBaseTest {
   function test_createStakeTokens() public {
@@ -33,6 +35,46 @@ contract Umbrella_StkManager_Test is UmbrellaBaseTest {
     assertEq(StakeToken(addresses[0]).getUnstakeWindow(), defaultUnstakeWindow);
 
     assertEq(StakeToken(addresses[0]).asset(), address(underlying6Decimals));
+  }
+
+  function test_frontrunTokenCreation() public {
+    IUmbrellaStkManager.StakeTokenSetup[]
+      memory stakeSetups = new IUmbrellaStkManager.StakeTokenSetup[](1);
+    stakeSetups[0] = IUmbrellaStkManager.StakeTokenSetup({
+      underlying: address(underlying6Decimals),
+      cooldown: defaultCooldown,
+      unstakeWindow: defaultUnstakeWindow,
+      suffix: 'V1'
+    });
+
+    (string memory name, string memory symbol) = _getStakeNameAndSymbol(
+      stakeSetups[0].underlying,
+      stakeSetups[0].suffix
+    );
+
+    bytes memory creationData = _getCreationData(
+      stakeSetups[0].underlying,
+      name,
+      symbol,
+      stakeSetups[0].cooldown,
+      stakeSetups[0].unstakeWindow
+    );
+
+    // deploy token by someone manually
+    transparentProxyFactory.createDeterministic(
+      address(umbrellaStakeTokenImpl),
+      address(defaultAdmin),
+      creationData,
+      ''
+    );
+
+    address[] memory addresses = umbrella.predictStakeTokensAddresses(stakeSetups);
+    // token already created by someone
+    assertNotEq(addresses[0].code.length, 0);
+
+    vm.startPrank(defaultAdmin);
+    // should not revert
+    addresses = umbrella.createStakeTokens(stakeSetups);
   }
 
   function test_createStakeTokenWithEmptyUnderlying() public {
@@ -303,5 +345,51 @@ contract Umbrella_StkManager_Test is UmbrellaBaseTest {
 
     vm.expectRevert(abi.encodeWithSelector(IUmbrellaConfiguration.InvalidStakeToken.selector));
     umbrella.unpauseStk(address(unusedStake));
+  }
+
+  function _getStakeNameAndSymbol(
+    address underlying,
+    string memory suffix
+  ) internal view returns (string memory, string memory) {
+    bool isSuffixNotEmpty = bytes(suffix).length > 0;
+
+    // `Umbrella Stake + name + suffix` or `Umbrella Stake + name`
+    string memory name = string(
+      abi.encodePacked(
+        'Umbrella Stake ',
+        IERC20Metadata(underlying).name(),
+        isSuffixNotEmpty ? string(abi.encodePacked(' ', suffix)) : ''
+      )
+    );
+
+    // `stk+symbol+.+suffix` or `stk+symbol`
+    string memory symbol = string(
+      abi.encodePacked(
+        'stk',
+        IERC20Metadata(underlying).symbol(),
+        isSuffixNotEmpty ? string(abi.encodePacked('.', suffix)) : ''
+      )
+    );
+
+    return (name, symbol);
+  }
+
+  function _getCreationData(
+    address underlying,
+    string memory name,
+    string memory symbol,
+    uint256 cooldown,
+    uint256 unstakeWindow
+  ) internal view returns (bytes memory) {
+    return
+      abi.encodeWithSelector(
+        UmbrellaStakeToken.initialize.selector,
+        underlying,
+        name,
+        symbol,
+        address(umbrella),
+        cooldown,
+        unstakeWindow
+      );
   }
 }
