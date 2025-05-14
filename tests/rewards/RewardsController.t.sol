@@ -1173,6 +1173,7 @@ contract RewardsControllerTest is RewardsControllerBaseTest {
     skip(1 days);
 
     vm.startPrank(umbrellaController);
+
     stakeWith18Decimals.slash(someone, 1_000 * 1e18);
 
     assetData = rewardsController.getAssetData(address(stakeWith18Decimals));

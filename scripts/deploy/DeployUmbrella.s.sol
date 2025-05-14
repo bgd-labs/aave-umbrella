@@ -10,6 +10,7 @@ import {UmbrellaStakeTokenScripts} from './stages/2_UmbrellaStakeToken.s.sol';
 import {UmbrellaScripts} from './stages/3_Umbrella.s.sol';
 import {HelpersScripts} from './stages/4_Helpers.s.sol';
 import {UmbrellaConfigEngineScripts} from './stages/5_UmbrellaConfigEngine.s.sol';
+import {DeficitOffsetClinicStewardScripts} from './stages/6_DeficitOffsetClinicSteward.s.sol';
 
 /**
  * @title DeployUmbrellaSystem
@@ -32,6 +33,16 @@ library DeployUmbrellaSystem {
     address transparentProxyFactory,
     address executor,
     address collector
+  ) internal {
+    deploy(pool, transparentProxyFactory, executor, collector, address(0));
+  }
+
+  function deploy(
+    IPool pool,
+    address transparentProxyFactory,
+    address executor,
+    address collector,
+    address financialComittee
   ) internal {
     // If the implementation or logic contract is already deployed, the deploy function will return its address instead of reverting.
     // However, if the proxy contract is already deployed, the deploy function will revert.
@@ -116,6 +127,21 @@ library DeployUmbrellaSystem {
       collector
     );
     console.log('UmbrellaConfigEngine: ', umbrellaConfigEngine);
+
+    // DeficitOffsetClinicSteward
+    /////////////////////////////////////////////////////////////////////////////////////////
+    if (financialComittee != address(0)) {
+      // `DeficitOffsetClinicSteward` is not included in the core system and its deployment is optional
+      address deficitOffsetClinicSteward = DeficitOffsetClinicStewardScripts
+        .deployDeficitOffsetClinicSteward(
+          transparentProxyFactory,
+          pool,
+          executor,
+          collector,
+          financialComittee
+        );
+      console.log('DeficitOffsetClinicSteward: ', deficitOffsetClinicSteward);
+    }
   }
 
   function predict(
@@ -123,6 +149,16 @@ library DeployUmbrellaSystem {
     address transparentProxyFactory,
     address executor,
     address collector
+  ) internal view {
+    predict(pool, transparentProxyFactory, executor, collector, address(0));
+  }
+
+  function predict(
+    IPool pool,
+    address transparentProxyFactory,
+    address executor,
+    address collector,
+    address financialComittee
   ) internal view {
     console.log(
       'RewardsController (Impl): ',
@@ -165,5 +201,18 @@ library DeployUmbrellaSystem {
         collector
       )
     );
+
+    if (financialComittee != address(0)) {
+      console.log(
+        'DeficitOffsetClinicSteward: ',
+        DeficitOffsetClinicStewardScripts.predictDeficitOffsetClinicSteward(
+          transparentProxyFactory,
+          pool,
+          executor,
+          collector,
+          financialComittee
+        )
+      );
+    }
   }
 }
