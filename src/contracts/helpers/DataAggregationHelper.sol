@@ -38,13 +38,15 @@ contract DataAggregationHelper is Ownable, Rescuable {
   struct StakeTokenData {
     TokenData stakeTokenData;
     uint256 totalAssets;
+    uint256 targetLiquidity;
     bool isStakeConfigured;
     RewardTokenData[] rewardsTokenData;
   }
 
   struct RewardTokenData {
     TokenData rewardTokenData;
-    uint256 currentEmissionPerSecondScaled;
+    uint256 maxEmissionPerSecond;
+    uint256 distributionEnd;
   }
 
   struct TokenRouteData {
@@ -183,6 +185,9 @@ contract DataAggregationHelper is Ownable, Rescuable {
       stakeConfig = umbrella.getStakeTokenData(stakeTokens[i]);
 
       stakeTokensData[i].totalAssets = IUmbrellaStakeToken(stakeTokens[i]).totalAssets();
+      stakeTokensData[i].targetLiquidity = REWARDS_CONTROLLER
+        .getAssetData(stakeTokens[i])
+        .targetLiquidity;
       stakeTokensData[i].isStakeConfigured = stakeConfig.reserve != address(0);
 
       uint256 stakePrice;
@@ -207,8 +212,14 @@ contract DataAggregationHelper is Ownable, Rescuable {
       stakeTokensData[i].rewardsTokenData = new RewardTokenData[](rewards.length);
 
       for (uint256 j; j < rewards.length; ++j) {
-        stakeTokensData[i].rewardsTokenData[j].currentEmissionPerSecondScaled = REWARDS_CONTROLLER
-          .calculateCurrentEmissionScaled(stakeTokens[i], rewards[j]);
+        IRewardsController.RewardDataExternal memory rewardData = REWARDS_CONTROLLER.getRewardData(
+          stakeTokens[i],
+          rewards[j]
+        );
+
+        stakeTokensData[i].rewardsTokenData[j].maxEmissionPerSecond = rewardData
+          .maxEmissionPerSecond;
+        stakeTokensData[i].rewardsTokenData[j].distributionEnd = rewardData.distributionEnd;
 
         // Top reward cases:
         // 1) aToken
