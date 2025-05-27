@@ -4,8 +4,6 @@ pragma solidity ^0.8.27;
 import {IERC20} from 'openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from 'openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol';
 
-import {Ownable} from 'openzeppelin-contracts/contracts/access/Ownable.sol';
-
 import {IRescuableBase, RescuableBase} from 'solidity-utils/contracts/utils/RescuableBase.sol';
 import {Rescuable} from 'solidity-utils/contracts/utils/Rescuable.sol';
 
@@ -32,17 +30,22 @@ import {IRewardsController} from '../../rewards/interfaces/IRewardsController.so
  *
  * @author BGD Labs
  */
-contract UmbrellaConfigEngine is Ownable, Rescuable, IUmbrellaConfigEngine {
+contract UmbrellaConfigEngine is Rescuable, IUmbrellaConfigEngine {
   using SafeERC20 for IERC20;
 
   address public immutable REWARDS_CONTROLLER;
+  address public immutable RESCUE_GUARDIAN;
   address public immutable UMBRELLA;
 
-  constructor(address rewardsController_, address umbrella_, address owner_) Ownable(owner_) {
-    require(rewardsController_ != address(0) && umbrella_ != address(0), ZeroAddress());
+  constructor(address rewardsController, address umbrella, address guardian) {
+    require(
+      rewardsController != address(0) && umbrella != address(0) && guardian != address(0),
+      ZeroAddress()
+    );
 
-    REWARDS_CONTROLLER = rewardsController_;
-    UMBRELLA = umbrella_;
+    REWARDS_CONTROLLER = rewardsController;
+    RESCUE_GUARDIAN = guardian;
+    UMBRELLA = umbrella;
   }
 
   /// Functions for basic and extended payloads
@@ -199,7 +202,7 @@ contract UmbrellaConfigEngine is Ownable, Rescuable, IUmbrellaConfigEngine {
   /////////////////////////////////////////////////////////////////////////////////////////
 
   function whoCanRescue() public view override returns (address) {
-    return owner();
+    return RESCUE_GUARDIAN;
   }
 
   function maxRescue(

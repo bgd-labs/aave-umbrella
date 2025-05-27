@@ -157,6 +157,11 @@ contract UmbrellaPayloadSetup is Test {
     newUmbrellaConfigEngine = address(
       new UmbrellaConfigEngine(address(rewardsController), address(0), rescueGuardian)
     );
+
+    vm.expectRevert(abi.encodeWithSelector(IUmbrellaConfigEngine.ZeroAddress.selector));
+    newUmbrellaConfigEngine = address(
+      new UmbrellaConfigEngine(address(rewardsController), address(umbrella), address(0))
+    );
   }
 }
 
