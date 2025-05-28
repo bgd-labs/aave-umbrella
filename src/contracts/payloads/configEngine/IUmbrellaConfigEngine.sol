@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.27;
+pragma solidity ^0.8.0;
 
 import {IUmbrellaEngineStructs as IStructs} from '../IUmbrellaEngineStructs.sol';
 import {IUmbrellaStkManager as ISMStructs, IUmbrellaConfiguration as ICStructs} from '../IUmbrellaEngineStructs.sol';
