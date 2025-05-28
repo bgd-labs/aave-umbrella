@@ -39,7 +39,9 @@ abstract contract UmbrellaBasePayload {
   error ZeroAddress();
 
   constructor(address umbrellaConfigEngine) {
-    require(umbrellaConfigEngine != address(0), ZeroAddress());
+    if (umbrellaConfigEngine == address(0)) {
+      revert ZeroAddress();
+    }
 
     ENGINE = umbrellaConfigEngine;
   }
