@@ -1,4 +1,3 @@
-
 <table>
     <tr><th></th><th></th></tr>
     <tr>
@@ -11,6 +10,7 @@
         </td>
     </tr>
 </table>
+
 # Introduction
 
 A time-boxed security review of the **StakeToken** protocol was done by **StErMi**, with a focus on the security aspects of the application's smart contracts implementation.
@@ -23,8 +23,14 @@ A smart contract security review can never verify the complete absence of vulner
 
 The `StakeToken` is a new version of the Aave Safety Module stk tokens, to be used on `Umbrella`.
 
-- Link: https://github.com/bgd-labs/aave-umbrella/tree/main/src/contracts/stakeToken
+Previous review commit:
+- Link: https://github.com/bgd-labs/aave-umbrella-private/tree/main/src/contracts/stakeToken
 - Last commit: b06e3fda7f958d499dde9aabb14bad01d873935d
+
+Latest review commit:
+- Link: https://github.com/aave-dao/aave-umbrella/tree/main/src/contracts/umbrella
+- Last commit: `62f3850816b257087e92f41a7f37a698f00fa96e`
+
 # About **StErMi**
 
 **StErMi**, is an independent smart contract security researcher. He serves as a Lead Security Researcher at Spearbit and has identified multiple bugs in the wild on Immunefi and on protocol's bounty programs like the Aave Bug Bounty.
@@ -35,8 +41,14 @@ Do you want to connect with him?
 
 # Summary & Scope
 
-**_review commit hash_ - [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella/tree/dfa6a5449ac4680afd26f814bef945564fea402a)**
-**_fix-review commit hash_ - [e0cbabc9df79b793afb81112ad9112079a996b0f](https://github.com/bgd-labs/aave-umbrella/commit/e0cbabc9df79b793afb81112ad9112079a996b0f)**
+**_review commit hash_ - [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella-private/tree/dfa6a5449ac4680afd26f814bef945564fea402a)**
+**_fix-review commit hash_ - [e0cbabc9df79b793afb81112ad9112079a996b0f](https://github.com/bgd-labs/aave-umbrella-private/commit/e0cbabc9df79b793afb81112ad9112079a996b0f)**
+
+# Post Review Update: validating commit `62f3850` AAVE DAO Umbrella repository
+
+AAVE DAO has requested to review the differences between the last commit [5b987d2](https://github.com/bgd-labs/aave-umbrella-private/commit/5b987d222355a1a8fa4b475e7f31968f66dd2394) reviewed in the BGD Labs AAVE Umbrella repository and the commit [`62f3850`](https://github.com/aave-dao/aave-umbrella/commit/62f3850816b257087e92f41a7f37a698f00fa96e) from the AAVE DAO Umbrella repository that will be used as the official reference.
+
+At the end of the report you can find all the details relative to the validation of the differences and the confirmation that, apart from the mentioned differences the code is the same as the one that has been previously reviewed.
 
 # Severity classification
 
@@ -70,11 +82,11 @@ Do you want to connect with him?
 # [L-01] `StakeToken` vault is not compliant with the `ERC4626` standard
 ## Context
 
-- [ERC4626StakeTokenUpgradeable.sol#L111-L134](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L111-L134)
+- [ERC4626StakeTokenUpgradeable.sol#L111-L134](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L111-L134)
 
 ## Description
 
-**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
+**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
 
 The `IERC4626` interface documents the requirements of the `ERC4626` standard. Following the natspec documentation of the functions `maxDeposit`, `maxMint`, `maxRedeem` and `maxWithdraw` we know that those function **MUST** return a value that could be limited by the restriction applied to the user depending on the action executed.
 
@@ -99,57 +111,57 @@ To be compliant with the `ERC4626` standard, BGS should
 - Update the current implementation of `maxRedeem` and `maxWithdraw`, returning `0` if the vault is paused
 - Implement and override the `maxDeposit` and `maxMint` functions returning `0` if the vault is paused
 
-**StErMi:** The recommendations have been implemented in the fix-review snapshot [e0b9f86bf77ac719dc13d5936f0ef866bab03661](https://github.com/bgd-labs/aave-umbrella/commit/e0b9f86bf77ac719dc13d5936f0ef866bab03661).
+**StErMi:** The recommendations have been implemented in the fix-review snapshot [e0b9f86bf77ac719dc13d5936f0ef866bab03661](https://github.com/bgd-labs/aave-umbrella-private/commit/e0b9f86bf77ac719dc13d5936f0ef866bab03661).
 
 Now `maxRedeem`, `maxWithdraw`, `maxDeposit` and `maxMint` returns `0` if the contract is paused.
 
 # [L-02] Missing sanity checks
 ## Description
 
-**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
+**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
 
-1) [x] [ERC4626StakeTokenUpgradeable.sol#L63](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L63): revert if `rewardsController` is equal to `address(0)`. One of the main purposes of the contract is to reward stakers with a reward, many of the core logics will revert if the reward controller is not configured.
-2) [ ] [ERC4626StakeTokenUpgradeable.sol#L71](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L71): consider reverting the contract initialization logic if the `REWARDS_CONTROLLER` is not configured yet to have at least a configured and active reward distribution. From the staker POV, the only reason to stake tokens is to receive rewards. When the user stakes their `stataToken`, they will stop accruing rewards (on that side) and it's fair to require that at least a distribution for the `stakedToken` should be already configured and active.
-3) [x] [ERC4626StakeTokenUpgradeable.sol#L286](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L286): revert the `_slash` logic if `destination` is equal to `address(0)`. The ERC20 `asset()` could be using a non-standard OZ implementation that does not sanity-check the `receiver` of the token.
+1) [x] [ERC4626StakeTokenUpgradeable.sol#L63](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L63): revert if `rewardsController` is equal to `address(0)`. One of the main purposes of the contract is to reward stakers with a reward, many of the core logics will revert if the reward controller is not configured.
+2) [ ] [ERC4626StakeTokenUpgradeable.sol#L71](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L71): consider reverting the contract initialization logic if the `REWARDS_CONTROLLER` is not configured yet to have at least a configured and active reward distribution. From the staker POV, the only reason to stake tokens is to receive rewards. When the user stakes their `stataToken`, they will stop accruing rewards (on that side) and it's fair to require that at least a distribution for the `stakedToken` should be already configured and active.
+3) [x] [ERC4626StakeTokenUpgradeable.sol#L286](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L286): revert the `_slash` logic if `destination` is equal to `address(0)`. The ERC20 `asset()` could be using a non-standard OZ implementation that does not sanity-check the `receiver` of the token.
 4) [ ] [RescuableBase.sol#L14-L31](https://github.com/bgd-labs/solidity-utils/blob/a842c36308e76b8202a46962a6c2d59daceb640a/src/contracts/utils/RescuableBase.sol#L14-L31): consider updating also both the `_emergencyTokenTransfer` and `_emergencyEtherTransfer` to sanity check the `amount` and `to` parameters. Those functions should revert or at least early return if `to == address(0)` or `amount == 0`
 
 ## Recommendations
 
 BGD should consider following and implementing the suggestions listed above
 
-**BGD:** 
+**BGD:**
 
 1, 3 agree will be fixed.
 2 - At the moment it is unclear what such a check should look like, so acknowledged.
 4 - acknowledged, cause as I understand only DAO or strong multisig like 5-9 should be able to call these functions, no eoa. So calldata should be check by at least 5 people/orgs before action.
 
-**StErMi:** The first and third recommendations have been implemented in the fix-review snapshots [5728ddf9d4d1269ad0243edadec9e100acbd487a](https://github.com/bgd-labs/aave-umbrella/commit/5728ddf9d4d1269ad0243edadec9e100acbd487a) + [f8583e8199a669c07ee651498841aa9aac5d6e17](https://github.com/bgd-labs/aave-umbrella/commit/f8583e8199a669c07ee651498841aa9aac5d6e17).
+**StErMi:** The first and third recommendations have been implemented in the fix-review snapshots [5728ddf9d4d1269ad0243edadec9e100acbd487a](https://github.com/bgd-labs/aave-umbrella-private/commit/5728ddf9d4d1269ad0243edadec9e100acbd487a) + [f8583e8199a669c07ee651498841aa9aac5d6e17](https://github.com/bgd-labs/aave-umbrella-private/commit/f8583e8199a669c07ee651498841aa9aac5d6e17).
 
 - `ERC4626StakeTokenUpgradeable.constructor` reverts if `rewardsController` is equal to `address(0)`
 - `ERC4626StakeTokenUpgradeable._slash` function reverts if `destination` is equal to `address(0)`
 
-# [L-03] Consider adding a safe lower bound to the `_unstakeWindow` configuration parameter 
+# [L-03] Consider adding a safe lower bound to the `_unstakeWindow` configuration parameter
 ## Context
 
-- [ERC4626StakeTokenUpgradeable.sol#L294](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L294)
+- [ERC4626StakeTokenUpgradeable.sol#L294](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L294)
 
 ## Description
 
-**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
+**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
 
-The `_unstakeWindow` configuration parameter represents the window of seconds, after the cooldown deadline has been reached, for which the `owner` (or the `spender` with allowance) of the tokens can execute a `withdraw` or `redeem` action. 
+The `_unstakeWindow` configuration parameter represents the window of seconds, after the cooldown deadline has been reached, for which the `owner` (or the `spender` with allowance) of the tokens can execute a `withdraw` or `redeem` action.
 
 Once the window has ended, the `owner` won't be able to `withdraw` or `redeem` anymore from the snapshot taken and needs to recreate a new one.
 
-Given that the `_cooldown` configuration parameter could be high and given that both the `_cooldown` and `_unstakeWindow` values are used only when the snapshot is taken (changes to their value do not influence existing snapshots) it would be beneficial to have a safe lower bound applied when `_unstakeWindow` is configured. 
+Given that the `_cooldown` configuration parameter could be high and given that both the `_cooldown` and `_unstakeWindow` values are used only when the snapshot is taken (changes to their value do not influence existing snapshots) it would be beneficial to have a safe lower bound applied when `_unstakeWindow` is configured.
 
 For example, having a snapshot created with `_cooldown > 0` and `_unstakeWindow == 0` means that the `owner` will be required to execute the `withdraw` or `redeem` request at the **specific timestamp** that the cooldown ends; otherwise the snapshot will be considered outside the unstake window.
 
 ## Recommendations
 
-BGD should consider adding a lower bound sanity check to the `newUnstakeWindow` input parameter when the internal function `_setUnstakeWindow` is executed. 
+BGD should consider adding a lower bound sanity check to the `newUnstakeWindow` input parameter when the internal function `_setUnstakeWindow` is executed.
 
-**BGD:** There is some confusion that we haven't added to the documentation yet, but the `setCooldown` function and `setUnstakeWindow` should only be called by DAO. Owner of `stakeToken` must be a contract, which will contain an ACL mechanism under the hood. 
+**BGD:** There is some confusion that we haven't added to the documentation yet, but the `setCooldown` function and `setUnstakeWindow` should only be called by DAO. Owner of `stakeToken` must be a contract, which will contain an ACL mechanism under the hood.
 
 We did not add such checks, since the role responsible for assigning these parameters is the most responsible and should not set strange parameters without compromising the voting process.
 
@@ -157,13 +169,13 @@ We did not add such checks, since the role responsible for assigning these param
 
 ## Context
 
-- `slash`: [ERC4626StakeTokenUpgradeable.sol#L286](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L286)
-- `redeem`/`withdraw` (unstake): [ERC4626StakeTokenUpgradeable.sol#L180](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L180)
+- `slash`: [ERC4626StakeTokenUpgradeable.sol#L286](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L286)
+- `redeem`/`withdraw` (unstake): [ERC4626StakeTokenUpgradeable.sol#L180](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L180)
 - `emergencyTokenTransfer`: [RescuableBase.sol#L21](https://github.com/bgd-labs/solidity-utils/blob/a842c36308e76b8202a46962a6c2d59daceb640a/src/contracts/utils/RescuableBase.sol#L21)
 
 ## Description
 
-**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
+**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
 
 The "Considerations on the consequences on the user's operation after the exchange rate change because of a slash event" finding describe a low-likelihood issue that could miss the `reward` accrual of a EOA/contract if the `StataTokenV2`  are transferred or unwrapped when the `reward` have not been added to the `$._rewardTokens` reward list. When this happens, the EOA/Contract won't be able to claim the lost accrual.
 
@@ -171,7 +183,7 @@ A `StataTokenV2` token can be the underlying `asset` of a `StakeToken` vault and
 
 Given the above cited issue, it's possible that the `StakeToken` contract could lose part of the deserved accrued rewards (the one not added to the `$._rewardTokens` reward list) when the `StataTokenV2` underlying tokens leave the contact during the execution of these flows:
 - users that unstake their assets via a `withdraw` or `redeem` operation
-- the vault's owner that slashes part of the underlying `StataTokenV2` tokens in `slash` operation 
+- the vault's owner that slashes part of the underlying `StataTokenV2` tokens in `slash` operation
 - the vault's owner that rescue the rescuable amount of `StataTokenV2` tokens in a `Rescuable.emergencyTokenTransfer` operation
 
 ## Recommendations
@@ -188,39 +200,39 @@ So our decision is assuming refresh of reward tokens will be done in a relativel
 # [I-01] General informational issues
 ## Description
 
-**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
+**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
 
 ### Natspec typos, errors or improvements
 
-- [x] [README.md#L13](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/README.md?plain=1#L13): "slashing can happen up to the `getMaxSlashableAssets()` configuration" seems to imply that the upper bound limit can be configured, but in reality `MIN_ASSETS_REMAINING` is declared as a `constant`. Update the README to be less confusing and be coherent with the code.
-- [x] [README.md#L38](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/README.md?plain=1#L38): the `rescueAssets` does not exist, replace it with the `emergencyTokenTransfer` function name from the `Rescuable` contract inherited by `StakeToken`
-- [x] [README.md#L49](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/README.md?plain=1#L49): "The amount of `shares` available for withdrawal" could be rephrased to be more clear. Given the slash mechanism, it seems like it would influence the amount of shares the user can request to withdraw during cooldown. Instead, the `cooldown()` execution will always snapshot the current user share balance, which is unaffected by the slash mechanism.
-- [x] [README.md#L51](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/README.md?plain=1#L51): replace the name `assets` with `shares`. The `amount` stored in the user's snapshot is about `shares` and not the `assets` (`underlying`)
-- [x] [README.md#L51-L55](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/README.md?plain=1#L51-L55): consider being more specific using `shares` instead of `funds` and use the action `redeem` instead of `withdraw`. The snapshot amount is about `shares` that will be then `redeemed` and not withdrawn.
-- [x] [ERC4626StakeTokenUpgradeable.sol#L111-L112](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L111-L112): consider enhancing the current natspec documentation explaining that the max withdrawable amount is limited by the current cooldown snapshot status
-- [x] [ERC4626StakeTokenUpgradeable.sol#L118-L119](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L118-L119): consider enhancing the current natspec documentation explaining that the max redeemable amount is limited by the current cooldown snapshot status
+- [x] [README.md#L13](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/README.md?plain=1#L13): "slashing can happen up to the `getMaxSlashableAssets()` configuration" seems to imply that the upper bound limit can be configured, but in reality `MIN_ASSETS_REMAINING` is declared as a `constant`. Update the README to be less confusing and be coherent with the code.
+- [x] [README.md#L38](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/README.md?plain=1#L38): the `rescueAssets` does not exist, replace it with the `emergencyTokenTransfer` function name from the `Rescuable` contract inherited by `StakeToken`
+- [x] [README.md#L49](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/README.md?plain=1#L49): "The amount of `shares` available for withdrawal" could be rephrased to be more clear. Given the slash mechanism, it seems like it would influence the amount of shares the user can request to withdraw during cooldown. Instead, the `cooldown()` execution will always snapshot the current user share balance, which is unaffected by the slash mechanism.
+- [x] [README.md#L51](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/README.md?plain=1#L51): replace the name `assets` with `shares`. The `amount` stored in the user's snapshot is about `shares` and not the `assets` (`underlying`)
+- [x] [README.md#L51-L55](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/README.md?plain=1#L51-L55): consider being more specific using `shares` instead of `funds` and use the action `redeem` instead of `withdraw`. The snapshot amount is about `shares` that will be then `redeemed` and not withdrawn.
+- [x] [ERC4626StakeTokenUpgradeable.sol#L111-L112](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L111-L112): consider enhancing the current natspec documentation explaining that the max withdrawable amount is limited by the current cooldown snapshot status
+- [x] [ERC4626StakeTokenUpgradeable.sol#L118-L119](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L118-L119): consider enhancing the current natspec documentation explaining that the max redeemable amount is limited by the current cooldown snapshot status
 - [x] The `StakeToken` contract will accept not only `StataTokenV2` as the underlying `asset` but any `ERC20` compatible token. As we know, not all the `ERC20` tokens respect the `ERC20` standard in full and some of them could have behaviors that are incompatible with the current `StakeToken` logic (fee on transfer, for example). BGD must extend the current documentation explicitly static which type of `ERC20` token will be supported and accepted as the underlying `asset` of a `StakeToken` vault.
-- [x] [StakeToken.sol#L126-L134](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/StakeToken.sol#L126-L134) Nitpick: consider adding a natspec documentation for the `maxRescue` function that explicitly states that tokens should be rescuable even if the `StakeToken` contract has been paused.
+- [x] [StakeToken.sol#L126-L134](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/StakeToken.sol#L126-L134) Nitpick: consider adding a natspec documentation for the `maxRescue` function that explicitly states that tokens should be rescuable even if the `StakeToken` contract has been paused.
 - [x] Consider better documenting the relationship between cooldown and spender's allowance. The `$._allowances[owner][spender]` value (of the `ERC20` token) is used to both allow the spender to trigger a new and override an existing `cooldown` snapshot, or to transfer/withdraw tokens. The `snapshot` of a user is **not** bound to a `spender`, meaning that `spender_1` could create a cooldown, wait for the cooldown to reach maturity, but then a `spender_2` could "consume" the whole snapshot's amount and "steal" the opportunity of unstaking.
-- [x] [IERC4626StakeToken.sol#L7-L14](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/interfaces/IERC4626StakeToken.sol#L7-L14): consider rewriting the natspec documentation of the `CooldownSnapshot` struct. Specify that the `amount` is redeemable only after the `endOfCooldown` timestamp within `withdrawalWindow` seconds. Specify that `endOfCooldown` is a timestamp and that `withdrawalWindow` is a number of seconds. Currently, they are both defined as "Time" but they represent different units.
-- [x] [IERC4626StakeToken.sol#L22-L32](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/interfaces/IERC4626StakeToken.sol#L22-L32): add natspec documentation to every `Event` defined in the `IERC4626StakeToken` interface.
-- [x] [IERC4626StakeToken.sol](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/interfaces/IERC4626StakeToken.sol): there are multiple instances of the following issues:
+- [x] [IERC4626StakeToken.sol#L7-L14](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/interfaces/IERC4626StakeToken.sol#L7-L14): consider rewriting the natspec documentation of the `CooldownSnapshot` struct. Specify that the `amount` is redeemable only after the `endOfCooldown` timestamp within `withdrawalWindow` seconds. Specify that `endOfCooldown` is a timestamp and that `withdrawalWindow` is a number of seconds. Currently, they are both defined as "Time" but they represent different units.
+- [x] [IERC4626StakeToken.sol#L22-L32](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/interfaces/IERC4626StakeToken.sol#L22-L32): add natspec documentation to every `Event` defined in the `IERC4626StakeToken` interface.
+- [x] [IERC4626StakeToken.sol](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/interfaces/IERC4626StakeToken.sol): there are multiple instances of the following issues:
 	- Use the `@notice` term instead of `@dev` when you explain the function's behavior and meaning
 	- If the function returns values, document them with a `@return` statement
 	- If the function has input parameters, document them with a `@param` statement
 
 ### Renaming
 
-- [ ] [ERC4626StakeTokenUpgradeable.sol#L45](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L45): consider renaming the `ERC4626StakeTokenStorageLocation` variable in **uppercase**, given that it's a `constant`. See the [Solidity Style Guide for Constants](https://docs.soliditylang.org/en/latest/style-guide.html#constants) documentation.
-- [ ] [ERC4626StakeTokenUpgradeable.sol#L36-L37](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L36-L37) + [ERC4626StakeTokenUpgradeable.sol#L147-L150](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L147-L150): consider renaming both the struct's attribute name and the getter/setter function to something like `cooldownDuration`, `getCooldownDuration` and `setCooldownDuration`. The current names create confusion with the existence of the `cooldown()` function that is the action name performed by the user. 
-- [ ] [ERC4626StakeTokenUpgradeable.sol#L84-L87](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L84-L87): consider renaming the `cooldown()` function to something more meaningful and clear (similar to LIDO) like `startWithdrawRequest` or `requestWithdrawal`
-- [ ] [ERC4626StakeTokenUpgradeable.sol#L157-L160](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L157-L160): consider renaming `getStakerCooldown` to `getStakerCooldownSnapshot` to be clear and differentiate by the `cooldown` struct attribute that is a **duration**.
+- [ ] [ERC4626StakeTokenUpgradeable.sol#L45](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L45): consider renaming the `ERC4626StakeTokenStorageLocation` variable in **uppercase**, given that it's a `constant`. See the [Solidity Style Guide for Constants](https://docs.soliditylang.org/en/latest/style-guide.html#constants) documentation.
+- [ ] [ERC4626StakeTokenUpgradeable.sol#L36-L37](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L36-L37) + [ERC4626StakeTokenUpgradeable.sol#L147-L150](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L147-L150): consider renaming both the struct's attribute name and the getter/setter function to something like `cooldownDuration`, `getCooldownDuration` and `setCooldownDuration`. The current names create confusion with the existence of the `cooldown()` function that is the action name performed by the user.
+- [ ] [ERC4626StakeTokenUpgradeable.sol#L84-L87](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L84-L87): consider renaming the `cooldown()` function to something more meaningful and clear (similar to LIDO) like `startWithdrawRequest` or `requestWithdrawal`
+- [ ] [ERC4626StakeTokenUpgradeable.sol#L157-L160](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L157-L160): consider renaming `getStakerCooldown` to `getStakerCooldownSnapshot` to be clear and differentiate by the `cooldown` struct attribute that is a **duration**.
 
 ## Recommendations
 
 BGD should fix all the suggestions listed in the above section
 
-**StErMi:** Some of the recommendations have been implemented in the fix-review snapshot [e2449ca573168f365f3b2e51d548768ee4a02401](https://github.com/bgd-labs/aave-umbrella/commit/e2449ca573168f365f3b2e51d548768ee4a02401). Another part of the recommendations and fixes have been implemented in the [PR 73](https://github.com/bgd-labs/aave-umbrella/pull/73).
+**StErMi:** Some of the recommendations have been implemented in the fix-review snapshot [e2449ca573168f365f3b2e51d548768ee4a02401](https://github.com/bgd-labs/aave-umbrella-private/commit/e2449ca573168f365f3b2e51d548768ee4a02401). Another part of the recommendations and fixes have been implemented in the [PR 73](https://github.com/bgd-labs/aave-umbrella-private/pull/73).
 
 The "renaming" part of the suggestions won't be implemented.
 
@@ -229,12 +241,12 @@ The `spender` allowance of the `ERC20` contract is not used anymore in the `cool
 # [I-02] The `StakerCooldownUpdated` event is not tracking the caller, which could be different from the owner of the shares
 ## Context
 
-- [ERC4626StakeTokenUpgradeable.sol#L202-L207](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L202-L207)
-- [ERC4626StakeTokenUpgradeable.sol#L254-L259](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L254-L259)
+- [ERC4626StakeTokenUpgradeable.sol#L202-L207](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L202-L207)
+- [ERC4626StakeTokenUpgradeable.sol#L254-L259](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L254-L259)
 
 ## Description
 
-**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
+**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
 
 The cooldown snapshot can be created by both the owner of the `StakeToken` tokens or by a "spender" that has been enabled by the owner. Both the `cooldown()` and `cooldownOnBehalfOf(address owner)` will call the private function `_cooldown(owner)` that will create or override the cooldown snapshot for `owner`.
 
@@ -257,12 +269,12 @@ So, for today the status is acknowledged.
 # [I-03] `getMaxSlashableAssets` should return `0` when the Vault is paused
 ## Context
 
-- [StakeToken.sol#L147](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/StakeToken.sol#L147)
-- [ERC4626StakeTokenUpgradeable.sol#L141-L145](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L141-L145)
+- [StakeToken.sol#L147](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/StakeToken.sol#L147)
+- [ERC4626StakeTokenUpgradeable.sol#L141-L145](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L141-L145)
 
 ## Description
 
-**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
+**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
 
 Even if the `slash` function can be called only by the Vault's owner, the execution will anyway revert if the Vault has been paused.
 The `getMaxSlashableAssets` function implemented in the `ERC4626StakeTokenUpgradeable` contract should return the "maximum slashable assets available for now" (see `IERC4626StakeToken` natspec) but the current code does not consider the `_paused` status flag of the Vault
@@ -280,7 +292,7 @@ Even if this is not a security issue, given that the execution of `slash` revert
 
 BGD should consider to early return zero if `paused()` is `true`
 
-**StErMi:** The recommendations have been implemented in the fix-review snapshot [13eff9a6104be654a2c77a5f604295d7f5034bdd](https://github.com/bgd-labs/aave-umbrella/commit/13eff9a6104be654a2c77a5f604295d7f5034bdd).
+**StErMi:** The recommendations have been implemented in the fix-review snapshot [13eff9a6104be654a2c77a5f604295d7f5034bdd](https://github.com/bgd-labs/aave-umbrella-private/commit/13eff9a6104be654a2c77a5f604295d7f5034bdd).
 
 Now, the `_getMaxSlashableAssets` function used by `getMaxSlashableAssets` and `_slash` returns `0` if the contract is paused.
 
@@ -288,16 +300,16 @@ Now, the `_getMaxSlashableAssets` function used by `getMaxSlashableAssets` and `
 
 ## Description
 
-**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
+**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
 
 The `StakeToken` contracts is a `ERC4626` vault with a cooldown (delay) mechanism on the `redeem`/`withdraw` functionalities.
-The `owner` of the contract, in case of need, could execute a `slash` operation that will reduce the amount of `underlying` assets deposited by the users up to `maxSlashableAmount`. 
+The `owner` of the contract, in case of need, could execute a `slash` operation that will reduce the amount of `underlying` assets deposited by the users up to `maxSlashableAmount`.
 
 When a `slash` operation, that as we said, will **decrease** the `_getERC4626StakeTokenStorage()._totalAssets` value, the exchange rate of the vault will automatically change and won't be `1:1` anymore.
 
 The change in exchange rate could influence the outcome of the core `ERC4626` operations that are not protected by slippage mechanism or rounding errors.
 #### `deposit`
- 
+
 In this case, we have no problem, the number of shares received **after** the slash will be higher (assets are more valuable) compared to the amount received **before** the slash.
 
 See the `testDepositSlash` test case.
@@ -487,7 +499,7 @@ BGD should consider to
 	- the amount of asset received by redeeming the specified shares is **below** an input threshold
 3) Provide a safe UI/UX interaction on the frontend site to minimize the user loss and inform him/her about the outcome of the operations
 
-**StErMi:** The first recommendation has been implemented in the fix-review snapshot [c3c50501b885bfd7d221a784f1523528a842a641](https://github.com/bgd-labs/aave-umbrella/commit/c3c50501b885bfd7d221a784f1523528a842a641).
+**StErMi:** The first recommendation has been implemented in the fix-review snapshot [c3c50501b885bfd7d221a784f1523528a842a641](https://github.com/bgd-labs/aave-umbrella-private/commit/c3c50501b885bfd7d221a784f1523528a842a641).
 
 In the `README` file, the documentation relative to the `slash` consequences on the user operation has been improved.
 
@@ -497,7 +509,7 @@ BGD mentioned that the third one will be implemented in the web application.
 # [I-05] The `StakeToken` should better explain and document how the user will be compensated for the loss of rewards from not holding `StataTokenV2` anymore
 ## Description
 
-**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
+**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
 
 When a `StataTokenV2` holder stake their tokens into the `StakeToken` contract, they stop accruing all the tokens rewarded "indirectly" by holding the `aToken` wrapped by the `StataTokenV2` token. From that point on, those rewards will be accounted and accrued by the `StakeToken` contract itself. For more information about the "flow" of tokens and rewards, you can read a detailed explanation by looking at "[RESEARCH] Token flows and Reward accrual mechanism".
 
@@ -505,7 +517,7 @@ The current natspec documentation of the `StakeToken` contract states:
 
 > Stakers will be rewarded through `REWARDS_CONTROLLER` for providing underlying assets. The `slash` function can be called by the owner. It reduces the amount of assets in this vault and transfers them to the recipient. Thus, in exchange for rewards, users' underlying assets may decrease over time.
 
-While it's easy to understand the risk and consequences of staking those tokens when a `slash` operation is executed, the documentation fails to explain how the staker will be rewarded for the service provided and the risk taken and how it will compensate for the loss of rewards by not holding the staked `StataTokenV2` anymore. 
+While it's easy to understand the risk and consequences of staking those tokens when a `slash` operation is executed, the documentation fails to explain how the staker will be rewarded for the service provided and the risk taken and how it will compensate for the loss of rewards by not holding the staked `StataTokenV2` anymore.
 
 ## Recommendations
 
@@ -516,13 +528,13 @@ BGD should carefully plan and document how the `StataTokenV2` holders will be co
 # [I-06] Considerations on additional information to be tracked by the existing events and early return for unchanged values
 ## Context
 
-- [ERC4626StakeTokenUpgradeable.sol#L288](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/extension/ERC4626StakeTokenUpgradeable.sol#L288)
-- [ERC4626StakeTokenUpgradeable.sol#L296](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L296)
-- [ERC4626StakeTokenUpgradeable.sol#L302](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L302)
+- [ERC4626StakeTokenUpgradeable.sol#L288](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/extension/ERC4626StakeTokenUpgradeable.sol#L288)
+- [ERC4626StakeTokenUpgradeable.sol#L296](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L296)
+- [ERC4626StakeTokenUpgradeable.sol#L302](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a/src/contracts/stakeToken/extension/ERC4626StakeTokenUpgradeable.sol#L302)
 
 ## Description
 
-**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
+**Note:** the snapshot for the security review is [dfa6a5449ac4680afd26f814bef945564fea402a](https://github.com/bgd-labs/aave-umbrella-private/blob/dfa6a5449ac4680afd26f814bef945564fea402a)
 
 Some of the existing events could be enhanced with additional information that could provide more context and useful value to be later on used when consumed or tracked by dApps and monitoring system.
 
@@ -543,9 +555,9 @@ Note: see also the recommendations suggested in the finding  "The `StakerCooldow
 
 BGD should consider:
 1) enhancing the existing events with the additional information suggested in the "Description" section.
-2) avoid emitting the event if the new value of the contact's configuration has not been changed. 
+2) avoid emitting the event if the new value of the contact's configuration has not been changed.
 
-**BGD:** 
+**BGD:**
 1. The owner of the contract will install another contract (like `UmbrellaController`), which will have an ACL behavior model under it. Several different roles will call slash or other actions with the `onlyOwner` modifier through this controller. Therefore `msg.sender` will not be useful in this situation.
 2. The `amount` value will require the exact amount needed to pay off the bad debt. The `maxSlashable` value is set solely so that unexpected overflow cannot occur as a result of `totalAssets` being reset.
 3. Same as 1. `msg.sender` will always return some kind of controller, inside of which there will already be an ACL model.
@@ -555,7 +567,7 @@ BGD should consider:
 
 Changing `cooldown` or `unstakeWindow` will happen as a result of voting in the DAO or via multisig, so we do not have safety checks in case of null or identical values. Because addresses capable of changing these parameters through the controller will require multiple checks of all parameters from at least several persons.
 
-**StErMi:** The fourth and sixth recommendations have been implemented in the fix-review snapshot [a65133fdc87cd60857ea905e4d03679e1efccaba](https://github.com/bgd-labs/aave-umbrella/commit/a65133fdc87cd60857ea905e4d03679e1efccaba). The rest of the recommendations have been acknowledged by BGD.
+**StErMi:** The fourth and sixth recommendations have been implemented in the fix-review snapshot [a65133fdc87cd60857ea905e4d03679e1efccaba](https://github.com/bgd-labs/aave-umbrella-private/commit/a65133fdc87cd60857ea905e4d03679e1efccaba). The rest of the recommendations have been acknowledged by BGD.
 
 Now both the `CooldownChanged` and `UnstakeWindowChanged` events track the previous value that has been replaced by the setter function.
 
@@ -597,7 +609,7 @@ Given the above assumptions, these are the consequences when `alice` performs th
 		- `alice` has a balance of `1000 stataUSDC` and `0 aUSDC`
 		- `stataUSDC` contract has a balance of `1000 aUSDC`
 	- Accrual changes:
-		- `alice` **STOP** accruing `REWARD_TOKEN_1` rewards "directly" 
+		- `alice` **STOP** accruing `REWARD_TOKEN_1` rewards "directly"
 		- `stataUSDC` contract **START** accruing `REWARD_TOKEN_1` rewards (it's the new holder of the `aUSDC` tokens)
 		- `alice` **START** accruing `REWARD_TOKEN_1` rewards "indirectly" via the `stataUSDC` contract
 3) `alice` **transfer (stake)** `stataUSDC` to the `stkStataUSDC` contract
@@ -649,7 +661,7 @@ Unfortunately, there's a big difference in how the accrual and claiming process 
 
 When `alice` was holding the `aUSDC`, any operation (`mint/burn/transfer`) would have automatically updated the accrued amount of rewards for **EVERY** `reward` distribution associated to the `aUSDC` asset on the `RewardController`.
 
-But once she has wrapped those `aUSDC` tokens for `stataUSDC` things have changed and now the holder and the one that is directly accruing those rewards is the `stataUSDC` contract itself. 
+But once she has wrapped those `aUSDC` tokens for `stataUSDC` things have changed and now the holder and the one that is directly accruing those rewards is the `stataUSDC` contract itself.
 The `stataUSDC` contract tries to mimic the same behavior of `aUSDC` but there is a main issue and difference: the contract is **not always** fetching the list of `reward` distributions associated to the `aUSDC` asset but is using a "cached" version stored in `$._rewardTokens` array.
 
 The `$._rewardTokens` is updated **only** when the contract is initialized or when someone calls the `public` function `refreshRewardTokens()`
@@ -717,11 +729,11 @@ The result of this operation is that:
 # [FIX REVIEW I-01] `StakeToken` `permit` and `cooldownPermit` using the same nonce could create nonces overlap issues
 ## Context
 
-- [StakeToken.sol#L90-L112](https://github.com/bgd-labs/aave-umbrella/blob/e0cbabc9df79b793afb81112ad9112079a996b0f/src/contracts/stakeToken/StakeToken.sol#L90-L112)
+- [StakeToken.sol#L90-L112](https://github.com/bgd-labs/aave-umbrella-private/blob/e0cbabc9df79b793afb81112ad9112079a996b0f/src/contracts/stakeToken/StakeToken.sol#L90-L112)
 
 ## Description
 
-The `StakeToken` contract inherit from the `ERC20PermitUpgradeable` OZ contract that implements the `permit` feature to allow anyone (it's permissionless) to set the allowance of a `spender` on behalf of an `owner` via a `signature`. 
+The `StakeToken` contract inherit from the `ERC20PermitUpgradeable` OZ contract that implements the `permit` feature to allow anyone (it's permissionless) to set the allowance of a `spender` on behalf of an `owner` via a `signature`.
 
 The `ERC20PermitUpgradeable` contract inherit from the `NoncesUpgradeable` that uses a "common" `mapping(address account => uint256) _nonces;` state variable to manage users' nonces.
 
@@ -832,16 +844,16 @@ BGD should consider using a separate `nonceCooldown` mapping struct for the `coo
 
 If the above suggestion is not implemented, BGD should at least document this behavior, explaining to the users that they should consider creating signature for "permit" operations one at a time to avoid the above issue.
 
-**StErMi:** The recommendations have been implemented in the [PR 71](https://github.com/bgd-labs/aave-umbrella/pull/71). 
+**StErMi:** The recommendations have been implemented in the [PR 71](https://github.com/bgd-labs/aave-umbrella-private/pull/71).
 
 # [FIX REVIEW I-02] `cooldownWithPermit` should be removed or made not permissionless
-## Context 
+## Context
 
-- [StakeToken.sol#L90-L112](https://github.com/bgd-labs/aave-umbrella/blob/e0cbabc9df79b793afb81112ad9112079a996b0f/src/contracts/stakeToken/StakeToken.sol#L90-L112)
+- [StakeToken.sol#L90-L112](https://github.com/bgd-labs/aave-umbrella-private/blob/e0cbabc9df79b793afb81112ad9112079a996b0f/src/contracts/stakeToken/StakeToken.sol#L90-L112)
 
 ## Description
 
-The `cooldownWithPermit` function allows **anyone** (in a permissionless fashion) who has the `sig` value to execute the `cooldown` operation on behalf of the `user` specified in the signature. 
+The `cooldownWithPermit` function allows **anyone** (in a permissionless fashion) who has the `sig` value to execute the `cooldown` operation on behalf of the `user` specified in the signature.
 
 Unlike the `permit` function (which is also permissionless) that could at most change the `spender` allowance (so not directly the `owner` itself), the `cooldownWithPermit` could indeed something that is directly tied to the final user and reset the existing cooldown snapshot.
 
@@ -853,4 +865,130 @@ BGD should consider removing the feature, given that there's already an existing
 
 BGD should consider otherwise at least to remove the permissionless flavour from the execution, allowing only a specific EOA or contract to execute the `cooldownWithPermit`. This can be enabled by adding an `address executor` data into the signature and checking that the `msg.sender` matches it during the execution.
 
-**StErMi:** The recommendation has been implemented in the [PR 74](https://github.com/bgd-labs/aave-umbrella/pull/74), only the `caller` specified by the `user` in the signature will be able to execute the `cooldownWithPermit` function.
+**StErMi:** The recommendation has been implemented in the [PR 74](https://github.com/bgd-labs/aave-umbrella-private/pull/74), only the `caller` specified by the `user` in the signature will be able to execute the `cooldownWithPermit` function.
+
+# Validation of the commit `62f3850` AAVE DAO Umbrella repository
+
+Note: the following folders and files where considered out of scope of the review:
+- `src/contracts/helpers/DataAggregationHelper.sol`
+- `src/contracts/automation/*`
+- `src/contracts/payloads/*`
+- `src/contracts/stewards/*`
+
+Below you can find the differences between the last commit [5b987d2](https://github.com/bgd-labs/aave-umbrella-private/commit/5b987d222355a1a8fa4b475e7f31968f66dd2394) reviewed and the requested commit to be reviewed [`62f3850`](https://github.com/aave-dao/aave-umbrella/tree/62f3850816b257087e92f41a7f37a698f00fa96e) on the final [AAVE DAO Umbrella Repo](https://github.com/aave-dao/aave-umbrella).
+
+The review confirms that these are the only differences, in the in-scope contracts, that have been applied compared to the code already reviewed from the last Security Review reported.
+```diff
+--- bgd-labs/aave-umbrella-private/src/contracts/helpers/UmbrellaBatchHelper.sol	2025-06-01 07:51:08
++++ aave-dao/aave-umbrella/src/contracts/helpers/UmbrellaBatchHelper.sol	2025-06-01 07:50:59
+@@ -1,4 +1,4 @@
+-// SPDX-License-Identifier: BUSL-1.1
++// SPDX-License-Identifier: MIT
+ pragma solidity ^0.8.27;
+
+ import {IERC20} from 'openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
+--- bgd-labs/aave-umbrella-private/src/contracts/helpers/interfaces/IUmbrellaBatchHelper.sol	2025-06-01 07:51:08
++++ aave-dao/aave-umbrella/src/contracts/helpers/interfaces/IUmbrellaBatchHelper.sol	2025-06-01 07:50:59
+@@ -1,4 +1,4 @@
+-// SPDX-License-Identifier: BUSL-1.1
++// SPDX-License-Identifier: MIT
+ pragma solidity ^0.8.0;
+
+ import {IRescuable} from 'solidity-utils/contracts/utils/interfaces/IRescuable.sol';
+--- bgd-labs/aave-umbrella-private/src/contracts/helpers/interfaces/IUniversalToken.sol	2025-06-01 07:51:08
++++ aave-dao/aave-umbrella/src/contracts/helpers/interfaces/IUniversalToken.sol	2025-06-01 07:50:59
+@@ -1,4 +1,4 @@
+-// SPDX-License-Identifier: BUSL-1.1
++// SPDX-License-Identifier: MIT
+ pragma solidity ^0.8.0;
+
+ import {IStataTokenV2} from 'aave-v3-origin/contracts/extensions/stata-token/interfaces/IStataTokenV2.sol';
+--- bgd-labs/aave-umbrella-private/src/contracts/umbrella/UmbrellaStkManager.sol	2025-06-01 07:51:08
++++ aave-dao/aave-umbrella/src/contracts/umbrella/UmbrellaStkManager.sol	2025-06-01 07:50:59
+@@ -213,14 +213,23 @@
+       stakeSetup.unstakeWindow
+     );
+
+-    // name and symbol inside creation data is considered as unique, so using different salts is excess
+-    // if for some reason we want to create different tokens with the same name and symbol, then we can use different `cooldown` and `unstakeWindow`
+-    address umbrellaStakeToken = TRANSPARENT_PROXY_FACTORY().createDeterministic(
++    address umbrellaStakeToken = TRANSPARENT_PROXY_FACTORY().predictCreateDeterministic(
+       UMBRELLA_STAKE_TOKEN_IMPL(),
+       SUPER_ADMIN(),
+       creationData,
+       ''
+     );
++
++    if (umbrellaStakeToken.code.length == 0) {
++      // name and symbol inside creation data is considered as unique, so using different salts is excess
++      // if for some reason we want to create different tokens with the same name and symbol, then we can use different `cooldown` and `unstakeWindow`
++      TRANSPARENT_PROXY_FACTORY().createDeterministic(
++        UMBRELLA_STAKE_TOKEN_IMPL(),
++        SUPER_ADMIN(),
++        creationData,
++        ''
++      );
++    }
+
+     _getUmbrellaStkManagerStorage().stakeTokens.add(umbrellaStakeToken);
+
+--- bgd-labs/aave-umbrella-private/src/contracts/umbrella/interfaces/IUmbrellaConfiguration.sol	2025-06-01 07:51:08
++++ aave-dao/aave-umbrella/src/contracts/umbrella/interfaces/IUmbrellaConfiguration.sol	2025-06-01 07:51:21
+@@ -145,7 +145,9 @@
+    * @param reserve Address of the `reserve`
+    * @return An array of `SlashingConfig` structs
+    */
+-  function getReserveSlashingConfigs(address reserve) external returns (SlashingConfig[] memory);
++  function getReserveSlashingConfigs(
++    address reserve
++  ) external view returns (SlashingConfig[] memory);
+
+   /**
+    * @notice Returns the slashing configuration for a given `UmbrellaStakeToken` in regards to a specific `reserve`.
+@@ -157,7 +159,7 @@
+   function getReserveSlashingConfig(
+     address reserve,
+     address umbrellaStake
+-  ) external returns (SlashingConfig memory);
++  ) external view returns (SlashingConfig memory);
+
+   /**
+    * @notice Returns if a reserve is currently slashable or not.
+@@ -175,14 +177,14 @@
+    * @param reserve Address of the `reserve`
+    * @return The amount of the `deficitOffset`
+    */
+-  function getDeficitOffset(address reserve) external returns (uint256);
++  function getDeficitOffset(address reserve) external view returns (uint256);
+
+   /**
+    * @notice Returns the amount of already slashed funds that have not yet been used for the deficit elimination.
+    * @param reserve Address of the `reserve`
+    * @return The amount of funds pending for deficit elimination
+    */
+-  function getPendingDeficit(address reserve) external returns (uint256);
++  function getPendingDeficit(address reserve) external view returns (uint256);
+
+   /**
+    * @notice Returns the `StakeTokenData` of the `umbrellaStake`.
+--- bgd-labs/aave-umbrella-private/src/contracts/umbrella/interfaces/IUmbrellaStkManager.sol	2025-06-01 07:51:08
++++ aave-dao/aave-umbrella/src/contracts/umbrella/interfaces/IUmbrellaStkManager.sol	2025-06-01 07:51:21
+@@ -49,7 +49,7 @@
+   /////////////////////////////////////////////////////////////////////////////////////////
+
+   /**
+-   * @notice Creates new `UmbrlleaStakeToken`s.
++   * @notice Creates new `UmbrellaStakeToken`s.
+    * @param stakeTokenSetups Array of `UmbrellaStakeToken`s setup configs
+    * @return stakeTokens Array of new `UmbrellaStakeToken`s addresses
+    */
+@@ -146,7 +146,7 @@
+   function UMBRELLA_STAKE_TOKEN_IMPL() external view returns (address);
+
+   /**
+-   * @notice Returns the `SUPER_ADMIN` address, which has `DEFAULT_ADMIN_ROLE` and is used to manage `UmbrellaStakeToken`s upgreadability.
++   * @notice Returns the `SUPER_ADMIN` address, which has `DEFAULT_ADMIN_ROLE` and is used to manage `UmbrellaStakeToken`s upgradability.
+    * @return `SUPER_ADMIN` address
+    */
+   function SUPER_ADMIN() external view returns (address);
+```
