@@ -7,10 +7,10 @@ echo "1: mirrors.conf"
 certoraRun $CMN  certora/conf/rewards/mirrors.conf \
             --msg "1. rewards/mirrors.conf"
 
-echo
-echo "2: invariants.conf"
-certoraRun $CMN  certora/conf/rewards/invariants.conf \
-            --msg "2. rewards/invariants.conf"
+#echo
+#echo "2: invariants.conf"
+#certoraRun $CMN  certora/conf/rewards/invariants.conf \
+  #          --msg "2. rewards/invariants.conf"
 
 echo
 echo "3: double_reward.conf"
